@@ -1,0 +1,4 @@
+,BusinessTravel,mean,count,attrition_pct
+1,Travel_Frequently,0.2490974729241877,277,24.91
+2,Travel_Rarely,0.14956855225311602,1043,14.96
+0,Non-Travel,0.08,150,8.0

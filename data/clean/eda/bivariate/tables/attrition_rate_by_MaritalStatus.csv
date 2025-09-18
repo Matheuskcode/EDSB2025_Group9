@@ -1,0 +1,4 @@
+,MaritalStatus,mean,count,attrition_pct
+2,Single,0.2553191489361702,470,25.53
+1,Married,0.12481426448736999,673,12.48
+0,Divorced,0.10091743119266056,327,10.09

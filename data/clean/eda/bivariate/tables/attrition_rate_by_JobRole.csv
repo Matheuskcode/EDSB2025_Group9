@@ -1,0 +1,10 @@
+,JobRole,mean,count,attrition_pct
+8,Sales Representative,0.39759036144578314,83,39.76
+2,Laboratory Technician,0.23938223938223938,259,23.94
+1,Human Resources,0.23076923076923078,52,23.08
+7,Sales Executive,0.17484662576687116,326,17.48
+6,Research Scientist,0.16095890410958905,292,16.1
+4,Manufacturing Director,0.06896551724137931,145,6.9
+0,Healthcare Representative,0.06870229007633588,131,6.87
+3,Manager,0.049019607843137254,102,4.9
+5,Research Director,0.025,80,2.5

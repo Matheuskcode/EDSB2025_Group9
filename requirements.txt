@@ -1,0 +1,26 @@
+# Core data wrangling & math
+pandas
+numpy
+
+# Modeling & feature selection
+scikit-learn
+joblib
+
+# Visualization
+matplotlib
+seaborn
+
+# Notebook environment
+jupyter
+notebook
+ipython  # used implicitly by Jupyter; added explicitly because we use IPython.display
+
+# Statistical utilities
+scipy  # needed for seaborn KDE/backends in some environments and for stats if you keep older cells
+
+# Explainability (already present)
+shap
+
+# Optional / Enable if you turn on interactive plots in the provided code
+# plotly
+# statsmodels  # optional: some seaborn/regression convenience functions use it; not required by our current cells

@@ -1,0 +1,171 @@
+Progress Report — Predicting Employee Attrition
+Date: 2025‑09‑18
+1) Executive Summary
+We implemented a reproducible, automated EDA pipeline that:
+
+Loads the HR Attrition dataset from a robust path setup.
+Runs univariate, bivariate (focused on Attrition), and multivariate analyses.
+Prints each output in the notebook and persists all tables and figures to disk.
+Provides inline interpretations explaining what each output means and how to read it, including Pearson, Spearman, VIF, Cramér’s V, Mutual Information, outliers, missingness, and decile profiles.
+Ensures consistent folder structure and stable filenames (overwriting previous run artifacts to avoid clutter).
+
+This gives HR and Analytics teams an auditable, repeatable understanding of data quality, risk patterns, drivers of attrition, and multicollinearity risks—all before any modeling.
+
+2) Project & Data Setup
+
+Paths & Loader: Created PROJECT_ROOT, RAW_FILE, and a helper function (load_data_from_provided) with fallback to data/raw/.
+Dataset Columns: We included the full expected column list (e.g., Age, Attrition, BusinessTravel, Education, JobRole, WorkLifeBalance, etc.) to validate schema quickly in notebooks.
+Target normalization: Added in‑memory column _Attrition_bin (0/1) for analyses tied to the target.
+
+Why this matters: Reduces friction in loading, ensures schema awareness, and standardizes the target for downstream analysis and modeling.
+
+3) Univariate Analysis (Distributions, Outliers, Missingness)
+What we do and why it helps:
+
+Categorical distributions: Count and % per category, with annotations on bars and cardinality control (top‑N + “OUTROS” bucket).
+Insight: Identify dominant categories, rare levels to merge, and data inconsistencies.
+Numeric distributions: Histograms (KDE when appropriate) + describe() stats.
+Insight: Detect skew, multi‑modality, ranges, and low variance features.
+Outlier scan (IQR/Z‑score): Quantifies outlier rates per numeric, plus boxplots for top offenders.
+Insight: Inform winsorization/capping, robust transformations, and quality checks.
+Missingness analysis: Missing % by column; missingness heatmap; correlation of missingness across columns.
+Insight: Spot systematic data gaps (e.g., process issues), guide imputation strategy, and capture “missingness as signal”.
+
+Artifacts saved
+data/clean/eda/univariate/tables/:
+
+summary_statistics.csv, dtypes.csv, missing_by_column.csv, value_counts_<col>.csv, describe_<col>.csv, outlier_scan_numeric.csv, missingness_correlation.csv
+data/clean/eda/univariate/figures/:
+<col>_count.png, <col>_hist.png, boxplots_top6_outliers.png, missing_top20_bar.png, missingness_heatmap.png, missingness_correlation_heatmap.png
+
+
+4) Bivariate Analysis (Focus on Attrition)
+What we do and why it helps:
+
+Target distribution: Class balance for Attrition.
+Insight: If “Yes” is rare, choose balanced metrics (PR‑AUC, recall), class weights, or resampling.
+Attrition rate by category: For each categorical feature, compute and rank attrition %.
+Insight: Reveal high‑risk categories and candidates for policy/feature encoding.
+Numerics by Attrition: Violin + box plots and group describe() by _Attrition_bin.
+Insight: Visualize shifts and overlap across classes; good for feature selection and hypotheses.
+
+Artifacts saved
+data/clean/eda/bivariate/tables/:
+
+target_distribution.csv, attrition_rate_by_<col>.csv, <col>_by_attrition_summary.csv
+data/clean/eda/bivariate/figures/:
+attrition_distribution.png, attrition_rate_by_<col>.png, <col>_by_attrition.png
+
+
+5) Multivariate Analysis (Correlations, VIF, Categorical Associations)
+What we do and why it helps:
+
+Pearson correlation (numeric): Linear association; sensitive to outliers.
+Use: Spot linear drivers; early warning on multicollinearity clusters.
+Spearman correlation (numeric): Rank‑based; captures monotonic but non‑linear relations; more robust to outliers.
+Use: Confirm trends Pearson may miss; prioritize stable monotonic signals.
+VIF (Variance Inflation Factor): Quantifies multicollinearity among numerics (VIF > 10 is problematic; 5–10 monitor).
+Use: Decide feature pruning/combining or apply regularization.
+Cramér’s V matrix (categorical vs categorical): Association strength (0–1).
+Use: Detect redundant categorical variables that can lead to overfitting/leakage or require dimension reduction.
+2D Hotspots (two top categoricals vs target): Heatmap of attrition % for category intersections.
+Use: Identify risk intersections (e.g., JobRole × OverTime) for targeted HR strategies.
+
+Artifacts saved
+data/clean/eda/multivariate/tables/:
+
+correlation_pearson.csv, correlation_spearman.csv, top10_abs_corr_*_to_target.csv, vif_numeric.csv, cramers_v_categorical_matrix.csv, attrition_hotspots_<c1>_x_<c2>.csv
+data/clean/eda/multivariate/figures/:
+correlation_pearson_heatmap.png, correlation_spearman_heatmap.png, pairplot_top_numeric.png, cramers_v_categorical_heatmap.png, attrition_hotspots_<c1>_x_<c2>.png
+
+
+6) Advanced Feature Signal Checks
+
+Mutual Information (MI): Measures general dependency (captures nonlinear/non‑monotonic relations); 0 = independence, higher = stronger.
+Use: Prioritize features with nonlinear signal that correlations might miss.
+(Requires scikit-learn; the pipeline writes a note if it’s unavailable.)
+Decile Profiles (for numerics): Attrition % across quantile bins (q=10).
+Use: Detect monotonic trends and thresholds ideal for scorecards, rule‑based policies, and constrained models.
+
+Artifacts saved
+data/clean/eda/multivariate/tables/:
+
+mutual_information_vs_target.csv, attrition_by_deciles_<col>.csv
+data/clean/eda/multivariate/figures/:
+mutual_information_top20.png, attrition_by_deciles_<col>.png
+
+
+7) Interpretive Guidance (How to read each method)
+
+Pearson (−1 a +1): Linear association; 0 ≈ none. Outlier‑sensitive.
+Spearman (−1 a +1): Rank correlation; captures monotonic patterns; robust to non‑normality/outliers.
+VIF (≥1): Multicollinearity; >10 problematic (drop/combine or regularize).
+Cramér’s V (0–1): Strength between categoricals; no direction/causality.
+Mutual Information (≥0): General dependence; higher = stronger (nonlinear) association.
+Outliers (IQR/Z‑score): IQR robust to skew; Z>3 assumes ~normality.
+Missingness correlation: High correlation suggests shared capture logic or systemic data issues—consider joint imputation or missing flags as features.
+
+
+8) Reproducibility & Persistence
+
+All outputs are saved under:
+data/clean/eda/
+  ├─ univariate/{figures,tables}
+  ├─ bivariate/{figures,tables}
+  └─ multivariate/{figures,tables}
+
+
+Filenames are stable; re‑running the notebook overwrites previous outputs to keep the repo clean.
+(We can switch to timestamped versioning if you want to keep history.)
+
+
+9) Environment & Documentation Updates
+
+requirements.txt updated to include: ipython, scipy (plus existing: pandas, numpy, scikit-learn, matplotlib, seaborn, jupyter, notebook, shap, joblib).
+README.md updated to reflect:
+
+New EDA structure and outputs,
+How to run the notebook,
+What artifacts are produced.
+
+
+
+
+10) Key Decisions & Assumptions
+
+_Attrition_bin is created in memory for analysis; original data not altered on disk.
+Cardinality control for categoricals (top‑N + “OUTROS”) improves readability/stability.
+Pairplot samples up to 800 rows for performance; adjustable.
+Seaborn 0.14+ safe: color= used (no palette without hue) to avoid deprecation warnings.
+Mutual Information computed only if scikit‑learn is present; otherwise a note is saved.
+
+
+11) Where to Find What (Artifact Index)
+
+Top linear drivers (numeric): data/clean/eda/multivariate/tables/top10_abs_corr_pearson_to_target.csv
+Top monotonic drivers (numeric): .../top10_abs_corr_spearman_to_target.csv
+Top nonlinear drivers: .../mutual_information_vs_target.csv
+Risk by category: data/clean/eda/bivariate/tables/attrition_rate_by_<col>.csv
+Hotspot intersections: data/clean/eda/multivariate/tables/attrition_hotspots_<c1>_x_<c2>.csv
+Multicollinearity: .../vif_numeric.csv
+Outlier concentrations: data/clean/eda/univariate/tables/outlier_scan_numeric.csv
+Missingness profile: .../missing_by_column.csv + .../missingness_correlation.csv
+
+
+12) Recommended Next Steps
+
+Ordinal labeling: Map 1–4 scales (e.g., JobSatisfaction, WorkLifeBalance, JobInvolvement) to semantic labels (Low…Very High) in all plots/tables.
+Feature pruning: Drop constants (e.g., EmployeeCount, StandardHours if constant) and high‑VIF features; reduce high cardinality categoricals.
+Leakage checks: Ensure no derived fields leak target information.
+Modeling baseline: Logistic Regression / Tree‑based models with class weighting, and stratified split or stratified CV.
+Evaluation: ROC‑AUC + PR‑AUC, per‑class recall/precision, and calibration; prefer recall for “Yes”.
+Explainability: SHAP values for top models; partial dependence / ICE for interpretability.
+Policy translation: Convert top drivers/hotspots into actionable HR policies and early‑warning signals.
+
+
+13) How to Re‑Run
+
+Place dataset in data/raw/ (or set RAW_FILE to your local path).
+Run the data loading cell.
+Run the consolidated EDA cell.
+Review outputs in the notebook and in data/clean/eda/....
