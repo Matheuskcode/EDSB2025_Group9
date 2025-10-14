@@ -1,94 +1,58 @@
-Predicting Employee Attrition
-Capstone project scaffold for Predicting Employee Attrition with advanced EDA, feature engineering, and modeling.
-
-✅ Objective
-Predict employee attrition and provide actionable insights for HR through:
-
-Exploratory Data Analysis (EDA) with interpretive comments.
-Feature importance and risk factor identification.
-Predictive modeling with explainability.
-
-
-📂 Project Structure
-data/
-  ├─ raw/        # Original datasets
-  ├─ clean/      # Processed datasets and EDA outputs
-      └─ eda/
-          ├─ univariate/
-          │    ├─ figures/
-          │    └─ tables/
-          ├─ bivariate/
-          │    ├─ figures/
-          │    └─ tables/
-          └─ multivariate/
-               ├─ figures/
-               └─ tables/
-notebooks/
-  ├─ Bootcamp_Data_Analysis  # Main analysis notebook
-  └─Bootcamp_Git_Admin  # Git-Hub Analisys
-src/
-  ├─ data_prep.py
-  ├─ eda_utils.py
-  └─ model_utils.py
-models/
-  └─ trained_model.pkl
-reports/
-  ├─ figures/
-  └─ slides/
-
-
-▶ How to Run
-
-Create a virtual environment:
-Shellpython -m venv .venvMostrar mais linhas
-
-Activate and install dependencies:
-Shellsource .venv/bin/activate   # Linux/Mac.venv\Scripts\activate      # Windowspip install -r requirements.txtMostrar mais linhas
-
-Start Jupyter Notebook:
-Shelljupyter notebookMostrar mais linhas
-
-Open:
-notebooks/Enterprise_Data_Science_Bootcamp_Project.ipynb
-
-and run the cells in order.
-
-
-🔍 Features of the Updated Notebook
-
-Automated EDA:
-
-Univariate: distributions, outlier detection, missingness analysis.
-Bivariate: Attrition vs. categorical/numeric features, risk hotspots.
-Multivariate: Pearson & Spearman correlations, VIF, Cramér’s V, pairplots.
-
-
-Interpretive Comments:
-
-Each output includes what it means, how to read it, and what insights to extract.
-
-
-Artifact Persistence:
-
-All tables and plots saved under data/clean/eda/... for reproducibility.
-
-
-Advanced Metrics:
-
-Mutual Information for nonlinear signals.
-Decile-based attrition profiles for monotonicity checks.
-
-
-
-✅ Requirements
-See requirements.txt. Key libraries:
-
-pandas, numpy for data wrangling
-matplotlib, seaborn for visualization
-scikit-learn for modeling and feature selection
-scipy for statistical utilities
-ipython for rich notebook display
-shap for explainability (later modeling steps)
-
-
-📌 Next Steps
+Automated EDA Features
+- Univariate analysis: distributions, value counts, outlier detection, missingness tables.
+- Bivariate analysis: attrition distribution, attrition rate by categorical features, numeric summaries by target, risk hotspots.
+- Multivariate analysis: Pearson & Spearman correlations, VIF, Cramér’s V, pairplots, 2D hotspot grids.
+- Plots-only and Tables-only modes supported for flexible artifact generation.
+- All outputs saved under data/clean/eda/... for reproducibility.
+Interpretive Comments
+- Each EDA output includes guidance on interpretation: what the metric means, how to read the visualization/table, and suggested follow-up actions for HR.
+- Highlights potential risk factors and monotonic relationships where relevant.
+Advanced Metrics
+- Mutual Information for capturing nonlinear signals versus Pearson correlation.
+- Decile-based attrition profiles for monotonicity and risk segmentation checks.
+- Categorical association mapping with Cramér’s V.
+Artifact Persistence
+- Tables and figures saved by default to:
+- data/clean/eda/univariate/tables and data/clean/eda/univariate/figures
+- data/clean/eda/bivariate/tables and data/clean/eda/bivariate/figures
+- data/clean/eda/multivariate/tables and data/clean/eda/multivariate/figures
+- File naming uses safe filenames derived from column names.
+Requirements
+- See requirements.txt. Key libraries:
+- pandas, numpy — data wrangling
+- matplotlib, seaborn — visualization
+- scikit-learn — modeling, VIF, mutual information, feature selection
+- scipy — statistical utilities
+- ipython — rich notebook display
+- shap — explainability for model interpretation
+- Optional extras: plotly, statsmodels
+Notebook and Project Structure
+- Notebook highlights:
+- src/eda_utils.py: safe filename generation, table/figure saving, categorical detection, plotting helpers, annotation utilities.
+- src/data_prep.py: consistent encoding, train/validation splits, imputation defaults, target binarization.
+- src/model_utils.py: baseline pipelines, cross-validation, feature importance export, SHAP wrappers.
+- Outputs produced:
+- Summary CSVs: dtype info, missingness, descriptive stats, value counts, outlier scans, missingness correlations.
+- Bivariate tables: attrition rates by category, numeric summaries by target.
+- Multivariate tables: Pearson/Spearman, VIF, Cramér’s V, mutual information rankings, MI feature pairs.
+- Figures: histograms, countplots, attrition bar charts, violin/boxplots by target, heatmaps, pairplots, hotspot grids.
+- Repository layout:
+- data/
+- raw/
+- clean/
+- eda/
+- univariate/{figures,tables}
+- bivariate/{figures,tables}
+- multivariate/{figures,tables}
+- notebooks/
+- Bootcamp_Data_Analysis.ipynb
+- Bootcamp_Git_Admin.ipynb
+- src/
+- data_prep.py
+- eda_utils.py
+- model_utils.py
+- models/
+- trained_model.pkl
+- reports/
+- figures/
+- slides/

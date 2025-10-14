@@ -1,26 +1,73 @@
-# Core data wrangling & math
-pandas
-numpy
+"""
+Resumo dos resultados e decisão operacional
 
-# Modeling & feature selection
-scikit-learn
-joblib
+Pacotes e o que foi usado
+- Core data wrangling & math
+  - pandas; numpy
+- Modeling & feature selection
+  - scikit-learn; joblib
+- Visualization
+  - matplotlib; seaborn
+- Notebook environment
+  - jupyter; notebook; ipython
+- Statistical utilities
+  - scipy
+- Explainability
+  - shap
+- Optional / interactive / extras
+  - plotly   # optional: enable interactive plots
+  - statsmodels  # optional: used by some regression utilities; not required for core cells
 
-# Visualization
-matplotlib
-seaborn
+O que foi feito
+- Pré-processamento de features (imputação, escala, OHE) e salvamento do preproc.
+- Seleção de features com SelectFromModel (L1) para Logistic Regression.
+- RandomizedSearchCV para tuning (LR, RF, HGB, KNN) com scoring por average_precision.
+- Treino e calibração de modelos (CalibratedClassifierCV) quando aplicável.
+- Avaliação por holdout e por K‑Fold / Repeated Stratified K‑Fold (estabilidade).
+- Threshold tuning operacional (maximizar recall sujeito a precision mínima ≈ 0.30).
+- Experimentos com ensemble (média de probabilidades) e stacking (RF + HGB).
+- Exportação de pipelines, probabilidades e métricas para MODEL_DIR.
+- Preparação de snippets para operacionalizar scoring diário e relatório de alertas.
+- Geração de recomendações operacionais e plano de monitoramento.
 
-# Notebook environment
-jupyter
-notebook
-ipython  # used implicitly by Jupyter; added explicitly because we use IPython.display
+Modelos testados e resultados (resumo)
+- Logistic Regression
+  - ROC-AUC: 0.8139; PR-AUC: 0.6008
+  - threshold tuned (precision >= 0.30): thr≈0.095 -> recall≈0.787, precision≈0.301
+  - Observação: melhor PR‑AUC; probabilidades mais estáveis e interpretáveis.
+- Random Forest
+  - ROC-AUC: 0.8036; PR-AUC: 0.4359
+  - threshold tuned (precision >= 0.30): thr=0.10 -> recall≈0.851, precision≈0.310
+  - Observação: maior recall operacional (captura mais positivos) a custo de mais falsos positivos.
+- HistGradientBoosting (HGB)
+  - ROC-AUC: 0.7639; PR-AUC: 0.4724
+  - threshold tuned: thr≈0.155 -> recall≈0.681, precision≈0.305
+- KNN
+  - PR-AUC: 0.4053; threshold tuned: thr≈0.135 -> recall≈0.723, precision≈0.301
 
-# Statistical utilities
-scipy  # needed for seaborn KDE/backends in some environments and for stats if you keep older cells
+Recomendação de deploy (prioridade: identificar attrition positivo, considerando precisão)
+1. Deploy preferencial: **Random Forest calibrado** com **threshold = 0.10**
+   - Motivo: maior recall (~85%) mantendo precision ≈ 0.31; minimiza saídas não detectadas.
+   - Observação: ainda é necessário calibrar o RF e aplicar thr=0.10 no ambiente de scoring (snippet de calibração/score fornecido).
+2. Alternativa (se custo de investigação for limitante): **Logistic Regression calibrada** com **threshold ≈ 0.095**
+   - Motivo: melhor PR-AUC e probabilidades mais confiáveis; recall ainda alto (~79%) com precision similar.
 
-# Explainability (already present)
-shap
+Implementação prudente (recomendada)
+- Fazer **shadow/parallel deploy** de RF e LR por 2–4 semanas.
+- Medir: volume de alertas, precision observada, taxa de confirmação, custo médio por investigação.
+- Tomar decisão final com RH baseada em evidência operacional.
 
-# Optional / Enable if you turn on interactive plots in the provided code
-# plotly
-# statsmodels  # optional: some seaborn/regression convenience functions use it; not required by our current cells
+Mitigações para reduzir custo de investigação
+- Priorizar alertas por top‑drivers (SHAP) e regras; adicionar segunda camada leve de filtragem.
+- Ajustar threshold dinamicamente conforme recursos/custos.
+- Testar stacking RF+HGB em paralelo para tentar melhorar PR‑AUC sem perder recall.
+
+Checklist antes do deploy
+- Pipeline calibrado salvo em MODEL_DIR (calibrated_rf_pipeline.pkl ou calibrated_lr_pipeline.pkl).
+- Snippets de scoring e relatório diário integrados ao processo de produção.
+- Logging de probabilidades, flags e top drivers por caso.
+- Métrica de sucesso definida (p.ex., %confirmados, retenção) e plano de monitoramento contínuo.
+
+Observação final
+- Execute o snippet de calibração e aplicação de thr=0.10 no RF antes do deploy efetivo; validar no holdout ou em shadow run.
+"""
