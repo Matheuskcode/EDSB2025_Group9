@@ -111,6 +111,12 @@ Recommendations for managers
 - Retention incentives: broaden access to long‑term incentives (e.g., stock options) for critical roles to improve retention.
 - Data governance: validate data provenance and preprocessing steps to confirm that the dataset accurately reflects operational reality.
 
+5. 	Multivariate analysis (done & persisted)
+
+• 	Pearson & Spearman correlations, VIF, Cramér’s V matrix, pairplots and 2D hotspot grids computed and saved to data/clean/eda/multivariate/{tables,figures}.
+• 	Mutual information and decile profiles added for nonlinear and monotonic checks.
+• 	Top correlation lists, VIF table, Cramér’s V matrix and hotspot CSVs available for review.
+
 - Technical reading of results Target distribution
 - Attrition: 16.1% left (237 of 1,470). Strong class imbalance.
 Categorical variables most associated with attrition
@@ -210,13 +216,11 @@ Numeric variables
 - Satisfaction monitoring: closely track low-satisfaction and low-involvement groups and apply action plans.
 
 
-5. 	Multivariate analysis (done & persisted)
+6. 	Advanced signal checks (completed where possible)
+• 	Mutual Information vs target computed and saved (mutual_information_vs_target.csv); fallback note added if sklearn not available.
+• 	Decile-based attrition profiles generated for key numerics (attrition_by_deciles_<col>.csv and figures).
+• 	MI rankings and MI pairs exported.
 
-• 	Pearson & Spearman correlations, VIF, Cramér’s V matrix, pairplots and 2D hotspot grids computed and saved to data/clean/eda/multivariate/{tables,figures}.
-• 	Mutual information and decile profiles added for nonlinear and monotonic checks.
-• 	Top correlation lists, VIF table, Cramér’s V matrix and hotspot CSVs available for review.
-
-Technical readout of results
 VIF — Multicollinearity
 - Critical values:
 - JobLevel (11.21) and MonthlyIncome (10.80) — both > 10, indicating strong redundancy.
@@ -259,10 +263,6 @@ Recommendations for managers
 - Build HR dashboards combining variables (e.g., OverTime × MaritalStatus) to identify high-impact intervention groups and prioritize targeted actions.
 
 
-6. 	Advanced signal checks (completed where possible)
-• 	Mutual Information vs target computed and saved (mutual_information_vs_target.csv); fallback note added if sklearn not available.
-• 	Decile-based attrition profiles generated for key numerics (attrition_by_deciles_<col>.csv and figures).
-• 	MI rankings and MI pairs exported.
 
 7. 	EDA modes, artifacts & reproducibility (done)
 
