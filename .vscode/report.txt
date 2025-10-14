@@ -1,171 +1,295 @@
-Progress Report — Predicting Employee Attrition
-Date: 2025‑09‑18
-1) Executive Summary
-We implemented a reproducible, automated EDA pipeline that:
+Progress Report — Predicting Employee Attrition Date: 2025-09-18 (updated with completed work)
+1. 	Executive summary (updated)
+• 	Implemented a reproducible, automated EDA pipeline and executed it end-to-end. All univariate, bivariate and multivariate analyses were run and artifacts persisted to disk.
+• 	Ran model experiments (Logistic Regression with L1 selection, Random Forest, HistGradientBoosting, KNN), tuning with RandomizedSearchCV, applied calibration, threshold tuning for operational precision ≥ 0.30, and stability checks (Repeated Stratified K‑Fold).
+• 	Produced deployable scoring snippets, a calibrated RF candidate and validation runs for operational threshold selection.
+• 	Delivered interpretive comments and HR‑facing guidance alongside each EDA artifact.
 
-Loads the HR Attrition dataset from a robust path setup.
-Runs univariate, bivariate (focused on Attrition), and multivariate analyses.
-Prints each output in the notebook and persists all tables and figures to disk.
-Provides inline interpretations explaining what each output means and how to read it, including Pearson, Spearman, VIF, Cramér’s V, Mutual Information, outliers, missingness, and decile profiles.
-Ensures consistent folder structure and stable filenames (overwriting previous run artifacts to avoid clutter).
-
-This gives HR and Analytics teams an auditable, repeatable understanding of data quality, risk patterns, drivers of attrition, and multicollinearity risks—all before any modeling.
-
-2) Project & Data Setup
-
-Paths & Loader: Created PROJECT_ROOT, RAW_FILE, and a helper function (load_data_from_provided) with fallback to data/raw/.
-Dataset Columns: We included the full expected column list (e.g., Age, Attrition, BusinessTravel, Education, JobRole, WorkLifeBalance, etc.) to validate schema quickly in notebooks.
-Target normalization: Added in‑memory column _Attrition_bin (0/1) for analyses tied to the target.
-
-Why this matters: Reduces friction in loading, ensures schema awareness, and standardizes the target for downstream analysis and modeling.
-
-3) Univariate Analysis (Distributions, Outliers, Missingness)
-What we do and why it helps:
-
-Categorical distributions: Count and % per category, with annotations on bars and cardinality control (top‑N + “OUTROS” bucket).
-Insight: Identify dominant categories, rare levels to merge, and data inconsistencies.
-Numeric distributions: Histograms (KDE when appropriate) + describe() stats.
-Insight: Detect skew, multi‑modality, ranges, and low variance features.
-Outlier scan (IQR/Z‑score): Quantifies outlier rates per numeric, plus boxplots for top offenders.
-Insight: Inform winsorization/capping, robust transformations, and quality checks.
-Missingness analysis: Missing % by column; missingness heatmap; correlation of missingness across columns.
-Insight: Spot systematic data gaps (e.g., process issues), guide imputation strategy, and capture “missingness as signal”.
-
-Artifacts saved
-data/clean/eda/univariate/tables/:
-
-summary_statistics.csv, dtypes.csv, missing_by_column.csv, value_counts_<col>.csv, describe_<col>.csv, outlier_scan_numeric.csv, missingness_correlation.csv
-data/clean/eda/univariate/figures/:
-<col>_count.png, <col>_hist.png, boxplots_top6_outliers.png, missing_top20_bar.png, missingness_heatmap.png, missingness_correlation_heatmap.png
+2. 	Project & data setup (completed)
+• 	PROJECT_ROOT, RAW_FILE and load helpers implemented; dataset schema validation added.
+• 	Created in‑memory binary target _Attrition_bin (0/1), preserved original files on disk.
+• 	Preprocessing pipeline saved (imputation, scaling, OHE) at MODEL_DIR/preproc_pipeline.pkl.
 
 
-4) Bivariate Analysis (Focus on Attrition)
-What we do and why it helps:
+3. 	Univariate analysis (done & persisted)
 
-Target distribution: Class balance for Attrition.
-Insight: If “Yes” is rare, choose balanced metrics (PR‑AUC, recall), class weights, or resampling.
-Attrition rate by category: For each categorical feature, compute and rank attrition %.
-Insight: Reveal high‑risk categories and candidates for policy/feature encoding.
-Numerics by Attrition: Violin + box plots and group describe() by _Attrition_bin.
-Insight: Visualize shifts and overlap across classes; good for feature selection and hypotheses.
+• 	Categorical and numeric distributions, outlier scans (IQR/Z), missingness tables and correlations computed.
+• 	Artifacts saved under data/clean/eda/univariate/tables and .../figures:
+• 	summary_statistics.csv, missing_by_column.csv, value_counts_<col>.csv, outlier_scan_numeric.csv, <col>_hist.png, boxplots_top6_outliers.png, missingness_heatmap.png, etc.
+• 	Each artifact includes interpretive guidance and recommended follow-ups.
 
-Artifacts saved
-data/clean/eda/bivariate/tables/:
-
-target_distribution.csv, attrition_rate_by_<col>.csv, <col>_by_attrition_summary.csv
-data/clean/eda/bivariate/figures/:
-attrition_distribution.png, attrition_rate_by_<col>.png, <col>_by_attrition.png
-
-
-5) Multivariate Analysis (Correlations, VIF, Categorical Associations)
-What we do and why it helps:
-
-Pearson correlation (numeric): Linear association; sensitive to outliers.
-Use: Spot linear drivers; early warning on multicollinearity clusters.
-Spearman correlation (numeric): Rank‑based; captures monotonic but non‑linear relations; more robust to outliers.
-Use: Confirm trends Pearson may miss; prioritize stable monotonic signals.
-VIF (Variance Inflation Factor): Quantifies multicollinearity among numerics (VIF > 10 is problematic; 5–10 monitor).
-Use: Decide feature pruning/combining or apply regularization.
-Cramér’s V matrix (categorical vs categorical): Association strength (0–1).
-Use: Detect redundant categorical variables that can lead to overfitting/leakage or require dimension reduction.
-2D Hotspots (two top categoricals vs target): Heatmap of attrition % for category intersections.
-Use: Identify risk intersections (e.g., JobRole × OverTime) for targeted HR strategies.
-
-Artifacts saved
-data/clean/eda/multivariate/tables/:
-
-correlation_pearson.csv, correlation_spearman.csv, top10_abs_corr_*_to_target.csv, vif_numeric.csv, cramers_v_categorical_matrix.csv, attrition_hotspots_<c1>_x_<c2>.csv
-data/clean/eda/multivariate/figures/:
-correlation_pearson_heatmap.png, correlation_spearman_heatmap.png, pairplot_top_numeric.png, cramers_v_categorical_heatmap.png, attrition_hotspots_<c1>_x_<c2>.png
-
-
-6) Advanced Feature Signal Checks
-
-Mutual Information (MI): Measures general dependency (captures nonlinear/non‑monotonic relations); 0 = independence, higher = stronger.
-Use: Prioritize features with nonlinear signal that correlations might miss.
-(Requires scikit-learn; the pipeline writes a note if it’s unavailable.)
-Decile Profiles (for numerics): Attrition % across quantile bins (q=10).
-Use: Detect monotonic trends and thresholds ideal for scorecards, rule‑based policies, and constrained models.
-
-Artifacts saved
-data/clean/eda/multivariate/tables/:
-
-mutual_information_vs_target.csv, attrition_by_deciles_<col>.csv
-data/clean/eda/multivariate/figures/:
-mutual_information_top20.png, attrition_by_deciles_<col>.png
-
-
-7) Interpretive Guidance (How to read each method)
-
-Pearson (−1 a +1): Linear association; 0 ≈ none. Outlier‑sensitive.
-Spearman (−1 a +1): Rank correlation; captures monotonic patterns; robust to non‑normality/outliers.
-VIF (≥1): Multicollinearity; >10 problematic (drop/combine or regularize).
-Cramér’s V (0–1): Strength between categoricals; no direction/causality.
-Mutual Information (≥0): General dependence; higher = stronger (nonlinear) association.
-Outliers (IQR/Z‑score): IQR robust to skew; Z>3 assumes ~normality.
-Missingness correlation: High correlation suggests shared capture logic or systemic data issues—consider joint imputation or missing flags as features.
+- Statistical overview of the dataset
+- Size: 1,470 employees, 36 variables.
+- Data quality: no missing values.
+- Constant features: EmployeeCount, Over18, StandardHours are invariant and can be removed.
+- Attrition distribution: 16.1% left the company (237 cases); 83.9% remained.
+- Demographic profile
+- Average age: 37 years (min 18, max 60).
+- Gender: 60% male, 40% female.
+- Marital status: 46% married, 32% single, 22% divorced.
+- Education
+- Majority at levels 3 (≈39%) and 4 (≈27%).
+- Most common fields of study: Life Sciences (41%) and Medicine (32%).
+- Career and role
+- Departments: 65% R&D, 30% Sales, 4% HR.
+- Most common roles: Sales Executive (22%), Research Scientist (20%), Laboratory Technician (18%).
+- Job level: 73% at levels 1 and 2 (junior).
+- Satisfaction and engagement
+- JobSatisfaction and EnvironmentSatisfaction distributed relatively evenly; ~20% report level 1 (low satisfaction).
+- JobInvolvement: 59% at level 3 (moderate), 6% at level 1 (low).
+- Compensation
+- Average monthly income: R$ 6,503 (range R$ 1,009 to R$ 19,999).
+- Annual salary increase: average 15% (range 11%–25%).
+- Stock options: 43% none, 41% at level 1.
+- Workload and work-life balance
+- Overtime: 72% no overtime, 28% yes.
+- WorkLifeBalance: 61% level 3 (good), 5% level 1 (poor).
+- Tenure
+- Average company tenure: 7 years (range 0–40).
+- Average time in current role: 4.2 years.
+- Average time since last promotion: 2.2 years (median 1 year).
+- Average time with current manager: 4.1 years.
+- Business insights
+- Overall attrition is 16.1%; while not extreme, it can affect recruitment and training costs.
+- Class imbalance indicates retention is generally good, but specific groups show elevated risk.
+- Workforce skewed toward junior levels: 73% in levels 1–2, suggesting higher natural turnover in entry roles.
+- Pockets of low satisfaction (~20%) are potential retention risk segments.
+- Overtime as a risk factor: 28% report overtime; this group often shows higher attrition propensity.
+- Promotion velocity concerns: median 1 year since last promotion but cases up to 15 years without promotion may drive exits.
+- Pay dispersion: wide income range could create perceived unfairness among similar roles.
+- Department concentration: 65% of staff in R&D; analyses and HR policies should account for this concentration to avoid biased decisions.
+- Recommendations for managers
+- Talent development for juniors: implement development programs and clear career paths for levels 1–2.
+- Monitor satisfaction: run continuous climate surveys and target interventions for employees reporting low satisfaction.
+- Review overtime policies and compensation for frequent overtime to reduce burnout risk.
+- Improve promotion processes: set transparent promotion criteria and shorter review cycles to reduce stagnation.
+- Salary equity review: analyze internal pay equity and address unjustified disparities.
+- Focus retention efforts by department: tailor retention policies for R&D while maintaining coverage for smaller departments.
+- Remove invariant variables (EmployeeCount, Over18, StandardHours) from reports and models to simplify analyses.
+- Suggested presentation flow
+- Context and dataset overview.
+- Key statistics (age, attrition rate, role distribution).
+- Main risks identified (low satisfaction pockets, slow promotions, overtime).
+- Practical recommendations and next steps for HR.
+- Next request
+- Paste the main outputs you want included (e.g., df.info(), missing_sorted, desc_all, and selected value_counts) and a slide skeleton will be prepared for direct insertion.
 
 
-8) Reproducibility & Persistence
+4. 	Bivariate analysis (done & persisted)
 
-All outputs are saved under:
-data/clean/eda/
-  ├─ univariate/{figures,tables}
-  ├─ bivariate/{figures,tables}
-  └─ multivariate/{figures,tables}
+• 	Attrition distribution, attrition rates by categorical features, numeric summaries by target, and risk hotspot charts generated.
+• 	Outputs saved under data/clean/eda/bivariate/{tables,figures}: target_distribution.csv, attrition_rate_by_<col>.csv, <col>_by_attrition.png, etc.
+• 	Ranked high‑risk categories and provided HR actions for top findings.
+
+Data quality and outliers
+- Outliers (IQR & Z‑score)
+- Variables with highest IQR outlier rates:
+- TrainingTimesLastYear: 16.2% of records outside the expected IQR range.
+- PerformanceRating: 15.4% outside IQR (discrete variable concentrated at 3 and 4).
+- MonthlyIncome: 7.8% outliers (very high values relative to the median).
+- YearsSinceLastPromotion: 7.3% outliers (some employees >10 years without promotion).
+- YearsAtCompany: 7.1% outliers (employees up to 40 years at the company).
+- StockOptionLevel: 5.8% outliers (high levels are rare).
+- TotalWorkingYears: 4.3% outliers (very long careers).
+- Z‑score > 3 flags also appear for YearsSinceLastPromotion, YearsAtCompany and TotalWorkingYears.
+- Stable variables (no meaningful outliers): age, distance from home, satisfaction scores, involvement, standard hours, etc.
+- Missingness
+- No missing values detected in any column.
+- Missingness correlation matrix is fully NaN, confirming absence of missing data.
+Business insights
+- Training allocation: the high outlier rate in TrainingTimesLastYear indicates some employees receive far more or far fewer trainings than the majority, suggesting inconsistent training policies.
+- Performance ratings: low variance and clustering at a single score (mostly 3) make outlier detection here an artifact; this suggests a non‑discriminative performance evaluation process.
+- Monthly income dispersion: extreme high incomes relative to the median may create perceived pay inequities among similar roles.
+- Promotions and tenure: outliers in YearsSinceLastPromotion and YearsAtCompany point to employees with long periods without promotion or exceptionally long tenure, which can drive frustration and exits.
+- Stock options: skewed distribution indicates few employees receive high‑level stock options, potentially affecting retention of strategic talent.
+- Data provenance: absence of missingness is positive but should be validated to ensure no artificial preprocessing masked real gaps.
+Recommendations for managers
+- Training policy: review and standardize training allocation; target employees with unusually low or high training counts for development or reassignment.
+- Performance evaluation: redesign appraisal processes to increase discrimination and better identify high performers and development needs.
+- Pay equity audit: analyze salary ranges within comparable roles and address unjustified disparities.
+- Promotion pathways: implement clear progression plans and more frequent promotion review cycles to reduce long promotion gaps.
+- Retention incentives: broaden access to long‑term incentives (e.g., stock options) for critical roles to improve retention.
+- Data governance: validate data provenance and preprocessing steps to confirm that the dataset accurately reflects operational reality.
+
+- Technical reading of results Target distribution
+- Attrition: 16.1% left (237 of 1,470). Strong class imbalance.
+Categorical variables most associated with attrition
+- BusinessTravel:
+- Travel_Frequently → 24.9% attrition.
+- Travel_Rarely → 15.0%.
+- Non-Travel → 8.0%.
+- Frequent travel increases exit risk.
+- Department:
+- Sales → 20.6%.
+- HR → 19.0%.
+- R&D → 13.8%.
+- Sales and HR have higher risk.
+- EducationField:
+- HR → 25.9%; Technical Degree → 24.2%; Marketing → 22.0%.
+- Life Sciences and Medical → ~14%.
+- EnvironmentSatisfaction:
+- Level 1 (low) → 25.3%.
+- Level 4 (high) → 13.4%.
+- Low environment satisfaction is a risk factor.
+- JobInvolvement:
+- Level 1 (low) → 33.7%.
+- Level 4 (high) → 9.0%.
+- Low involvement is critical.
+- JobLevel:
+- Level 1 (junior) → 26.3%.
+- Level 5 (executive) → 7.2%.
+- Higher levels have lower risk.
+- JobRole:
+- Sales Representative → 39.8%.
+- Laboratory Technician → 23.9%.
+- Human Resources → 23.0%.
+- Research Director → 2.5%.
+- Entry and operational roles show higher risk.
+- JobSatisfaction:
+- Level 1 (low) → 22.8%.
+- Level 4 (high) → 11.3%.
+- MaritalStatus:
+- Single → 25.5%.
+- Married → 12.5%.
+- Divorced → 10.0%.
+- Single employees have higher exit rates.
+- OverTime:
+- Yes → 30.5%.
+- No → 10.4%.
+- Strong association with attrition.
+- StockOptionLevel:
+- Level 0 → 24.4%.
+- Level 2 → 7.6%.
+- Benefits reduce risk.
+- TrainingTimesLastYear:
+- 0 trainings → 27.8%.
+- 4 trainings → 21.1%.
+- 6 trainings → 9.2%.
+- More training reduces risk.
+- WorkLifeBalance:
+- Level 1 (poor) → 31.3%.
+- Level 3 (good) → 14.2%.
+- Work-life balance is a critical factor.
+Numeric variables
+- Age:
+- Attrited mean → 33.6 years.
+- Retained mean → 37.6 years.
+- Younger employees leave more.
+- MonthlyIncome:
+- Attrited mean → R$ 4,787.
+- Retained mean → R$ 6,832.
+- Lower income associated with leaving.
+- YearsAtCompany:
+- Attrited mean → 5.1 years.
+- Retained mean → 7.4 years.
+- Shorter tenure increases risk.
+- YearsInCurrentRole:
+- Attrited mean → 2.9 years.
+- Retained mean → 4.5 years.
+- Short time in role increases risk.
+- YearsWithCurrManager:
+- Attrited mean → 2.9 years.
+- Retained mean → 4.4 years.
+- Shorter manager relationship increases risk.
+- TotalWorkingYears:
+- Attrited mean → 8.2 years.
+- Retained mean → 11.9 years.
+- Less experienced professionals leave more.
+- Business insights
+- Risk profile: younger, single employees in entry roles (JobLevel 1, Sales Rep, Lab Tech) with low satisfaction and involvement, doing overtime and with limited experience.
+- Protective factors: older age, longer tenure, higher income, more trainings, better benefits (stock options), higher satisfaction and better work-life balance.
+- Critical areas: Sales and HR show higher attrition than R&D.
+- People management: relationship with manager and time in role are determinants—employees new to roles or under new managers have higher risk.
+- Recommendations for managers
+- Retain young talent: implement mentorship programs and clear career paths for levels 1–2.
+- Work-life balance: monitor overtime and offer flexible policies.
+- Training and development: increase training frequency, especially for employees with none.
+- Long-term benefits: expand access to stock options or other retention incentives.
+- Manager development: train managers to strengthen ties with direct reports, especially in early tenure.
+- Area-specific actions: implement targeted policies for Sales and HR.
+- Satisfaction monitoring: closely track low-satisfaction and low-involvement groups and apply action plans.
 
 
-Filenames are stable; re‑running the notebook overwrites previous outputs to keep the repo clean.
-(We can switch to timestamped versioning if you want to keep history.)
+5. 	Multivariate analysis (done & persisted)
+
+• 	Pearson & Spearman correlations, VIF, Cramér’s V matrix, pairplots and 2D hotspot grids computed and saved to data/clean/eda/multivariate/{tables,figures}.
+• 	Mutual information and decile profiles added for nonlinear and monotonic checks.
+• 	Top correlation lists, VIF table, Cramér’s V matrix and hotspot CSVs available for review.
+
+Technical readout of results
+VIF — Multicollinearity
+- Critical values:
+- JobLevel (11.21) and MonthlyIncome (10.80) — both > 10, indicating strong redundancy.
+- Interpretation: job level and monthly income act as near proxies for each other.
+- Moderate values:
+- TotalWorkingYears (4.77), YearsAtCompany (4.59), YearsWithCurrManager (2.77), YearsInCurrentRole (2.72).
+- Interpretation: professional trajectory variables are correlated but at acceptable levels.
+- Other variables: VIF ≈ 1 — statistically independent.
+Cramér’s V — Association between categoricals
+- Most associations are low or negligible (0.0–0.03).
+- Notable exceptions:
+- MaritalStatus ↔ StockOptionLevel: 0.475.
+- Department ↔ WorkLifeBalance: 0.038 (still low).
+- Interpretation: categorical variables are generally independent for modeling, but the MaritalStatus–StockOptionLevel association suggests potential bias in benefits allocation.
+2D Hotspot — OverTime × MaritalStatus
+- Employees without overtime:
+- Divorced → 6.1% attrition.
+- Married → 8.4% attrition.
+- Single → 16.2% attrition.
+- Employees with overtime:
+- Divorced → 19.2% attrition.
+- Married → 23.1% attrition.
+- Single → 49.6% attrition.
+- Interpretation: single employees who work overtime have extremely high exit risk (≈49.6%); risk factors multiply when combined.
+Business insights
+- Structural multicollinearity:
+- Income, job level and years of experience convey the same signal; choose one variable or apply regularization for predictive models.
+- Benefits and marital status:
+- The MaritalStatus–StockOptionLevel association suggests married/divorced employees may receive more stock options than singles, risking perceived unfairness and contributing to single employees’ exits.
+- Critical hotspot:
+- Single + OverTime = extreme risk group (≈49.6% attrition); combines low social support, high workload and weaker long-term attachment.
+Recommendations for managers
+- Feature simplification:
+- Use either JobLevel or MonthlyIncome (not both) in reports and models; apply Lasso/Ridge to address collinearity.
+- Benefits policy:
+- Review stock option allocation criteria to remove potential bias by marital status; consider expanding long-term incentives for vulnerable groups (e.g., single employees).
+- Overtime management:
+- Monitor single employees with high overtime; offer wellbeing programs, flexibility and targeted recognition to reduce burnout and exits.
+- Hotspot monitoring:
+- Build HR dashboards combining variables (e.g., OverTime × MaritalStatus) to identify high-impact intervention groups and prioritize targeted actions.
 
 
-9) Environment & Documentation Updates
+6. 	Advanced signal checks (completed where possible)
+• 	Mutual Information vs target computed and saved (mutual_information_vs_target.csv); fallback note added if sklearn not available.
+• 	Decile-based attrition profiles generated for key numerics (attrition_by_deciles_<col>.csv and figures).
+• 	MI rankings and MI pairs exported.
 
-requirements.txt updated to include: ipython, scipy (plus existing: pandas, numpy, scikit-learn, matplotlib, seaborn, jupyter, notebook, shap, joblib).
-README.md updated to reflect:
+7. 	EDA modes, artifacts & reproducibility (done)
 
-New EDA structure and outputs,
-How to run the notebook,
-What artifacts are produced.
+• 	Plots-only and Tables-only modes supported; default run generated both.
+• 	All artifacts saved with safe filenames under data/clean/eda/...; re-run behavior overwrites existing files to keep the workspace clean.
 
+8. 	Modeling & calibration (completed experiments)
 
+• 	RandomizedSearchCV run for LR (with L1 selection), RF, HGB and KNN (40 candidates, 5‑fold CV each).
+• 	Calibrated models produced using CalibratedClassifierCV where applicable; pipelines and calibrated objects saved under models/ and MODEL_DIR (e.g., calibrated_rf_pipeline.pkl).
+• 	Threshold tuning performed (objective: precision ≥ 0.30) and operational thresholds recorded:
+• 	Logistic Regression: thr ≈ 0.095 -> recall ≈ 0.787, precision ≈ 0.301
+• 	Random Forest: thr = 0.10    -> recall ≈ 0.851, precision ≈ 0.310
+• 	HGB: thr ≈ 0.155   -> recall ≈ 0.681, precision ≈ 0.305
+• 	KNN: thr ≈ 0.135   -> recall ≈ 0.723, precision ≈ 0.301
+• 	Stability testing: RepeatedStratifiedKFold (3×5) run for RF showed high recall and acceptable precision variability; results saved to MODEL_DIR (rf_stability_repeated_cv.csv, rf_stability_summary.json).
 
+9. 	Reporting & persistence (done)
 
-10) Key Decisions & Assumptions
+• 	All EDA tables/figures and modeling artifacts persisted:
+• 	data/clean/eda/{univariate,bivariate,multivariate}/{tables,figures}
+• 	MODEL_DIR contains preproc, best pipelines, calibrated models, metrics JSONs and per‑fold outputs.
+• 	Notebook updated with run instructions and artifact index; README and requirements.txt updated.
 
-_Attrition_bin is created in memory for analysis; original data not altered on disk.
-Cardinality control for categoricals (top‑N + “OUTROS”) improves readability/stability.
-Pairplot samples up to 800 rows for performance; adjustable.
-Seaborn 0.14+ safe: color= used (no palette without hue) to avoid deprecation warnings.
-Mutual Information computed only if scikit‑learn is present; otherwise a note is saved.
+10. 	Files/locations to review immediately
 
-
-11) Where to Find What (Artifact Index)
-
-Top linear drivers (numeric): data/clean/eda/multivariate/tables/top10_abs_corr_pearson_to_target.csv
-Top monotonic drivers (numeric): .../top10_abs_corr_spearman_to_target.csv
-Top nonlinear drivers: .../mutual_information_vs_target.csv
-Risk by category: data/clean/eda/bivariate/tables/attrition_rate_by_<col>.csv
-Hotspot intersections: data/clean/eda/multivariate/tables/attrition_hotspots_<c1>_x_<c2>.csv
-Multicollinearity: .../vif_numeric.csv
-Outlier concentrations: data/clean/eda/univariate/tables/outlier_scan_numeric.csv
-Missingness profile: .../missing_by_column.csv + .../missingness_correlation.csv
-
-
-12) Recommended Next Steps
-
-Ordinal labeling: Map 1–4 scales (e.g., JobSatisfaction, WorkLifeBalance, JobInvolvement) to semantic labels (Low…Very High) in all plots/tables.
-Feature pruning: Drop constants (e.g., EmployeeCount, StandardHours if constant) and high‑VIF features; reduce high cardinality categoricals.
-Leakage checks: Ensure no derived fields leak target information.
-Modeling baseline: Logistic Regression / Tree‑based models with class weighting, and stratified split or stratified CV.
-Evaluation: ROC‑AUC + PR‑AUC, per‑class recall/precision, and calibration; prefer recall for “Yes”.
-Explainability: SHAP values for top models; partial dependence / ICE for interpretability.
-Policy translation: Convert top drivers/hotspots into actionable HR policies and early‑warning signals.
-
-
-13) How to Re‑Run
-
-Place dataset in data/raw/ (or set RAW_FILE to your local path).
-Run the data loading cell.
-Run the consolidated EDA cell.
-Review outputs in the notebook and in data/clean/eda/....
+• 	EDA artifacts: data/clean/eda/univariate, data/clean/eda/bivariate, data/clean/eda/multivariate (tables + figures).
+• 	Modeling artifacts and metrics: MODEL_DIR/* and models/trained_model.pkl (if generated).
+• 	Stability outputs: MODEL_DIR/rf_stability_repeated_cv.csv and rf_stability_summary.json.
+• 	SHAP exports: MODEL_DIR/shap_* (summaries and per‑case files).
