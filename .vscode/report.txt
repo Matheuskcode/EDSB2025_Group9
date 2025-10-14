@@ -280,6 +280,33 @@ Recommendations for managers
 • 	KNN: thr ≈ 0.135   -> recall ≈ 0.723, precision ≈ 0.301
 • 	Stability testing: RepeatedStratifiedKFold (3×5) run for RF showed high recall and acceptable precision variability; results saved to MODEL_DIR (rf_stability_repeated_cv.csv, rf_stability_summary.json).
 
+Summary of results and operational decision
+Models evaluated (tuning + calibration)
+- Logistic Regression
+- ROC-AUC: 0.8139; PR-AUC: 0.6008
+- threshold = 0.5 → precision 0.739; recall 0.362
+- threshold tuned (precision ≥ 0.30) → thr ≈ 0.095 → recall ≈ 0.787; precision ≈ 0.301
+- Random Forest
+- ROC-AUC: 0.8036; PR-AUC: 0.4359
+- threshold = 0.5 → precision 0.458; recall 0.234
+- threshold tuned (precision ≥ 0.30) → thr = 0.10 → recall ≈ 0.851; precision ≈ 0.310
+- HistGradientBoosting (HGB)
+- ROC-AUC: 0.7639; PR-AUC: 0.4724
+- threshold tuned (precision ≥ 0.30) → thr ≈ 0.155 → recall ≈ 0.681; precision ≈ 0.305
+- KNN
+- PR-AUC: 0.4053; lower performance for this objective
+Deployment recommendation (objective: identify positive attrition while considering precision)
+- Preferred deploy: Random Forest (calibrated) with threshold = 0.10
+- Rationale: highest operational recall (~85%) while maintaining precision ≈ 0.31.
+- Operational implication: higher volume of alerts and more false positives to investigate.
+- Alternative (if investigation capacity is constrained): Logistic Regression (calibrated) with threshold ≈ 0.095
+- Rationale: better PR-AUC and more stable probabilities; still high recall (~79%) with similar precision.
+Recommended rollout approach
+- Run Random Forest and Logistic Regression in shadow/parallel for 2–4 weeks.
+- During pilot, track: alerts per day, observed precision (confirmation rate), recall where ground truth is available, and average cost per investigation.
+- Choose the active model with HR based on empirical alert volume, confirmation rate, and acceptable investigation cost.
+
+
 9. 	Reporting & persistence (done)
 
 • 	All EDA tables/figures and modeling artifacts persisted:
