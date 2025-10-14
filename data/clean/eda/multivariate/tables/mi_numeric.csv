@@ -1,0 +1,13 @@
+,feature,mutual_information
+16,MonthlyIncome,0.03338
+24,TotalWorkingYears,0.025848
+30,YearsWithCurrManager,0.0244
+27,YearsAtCompany,0.021269
+28,YearsInCurrentRole,0.017537
+0,Age,0.017314
+5,DistanceFromHome,0.008445
+17,MonthlyRate,0.002049
+10,HourlyRate,0.0
+20,PercentSalaryHike,0.0
+3,DailyRate,0.0
+29,YearsSinceLastPromotion,0.0

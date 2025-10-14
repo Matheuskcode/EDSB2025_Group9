@@ -1,0 +1,16 @@
+{
+  "model_name": "Logistic Regression",
+  "roc_auc": 0.8026531139633043,
+  "pr_auc": 0.5602598911618125,
+  "confusion_matrix": [
+    [
+      191,
+      56
+    ],
+    [
+      17,
+      30
+    ]
+  ],
+  "classification_report": "              precision    recall  f1-score   support\n\n         0.0      0.918     0.773     0.840       247\n         1.0      0.349     0.638     0.451        47\n\n    accuracy                          0.752       294\n   macro avg      0.634     0.706     0.645       294\nweighted avg      0.827     0.752     0.777       294\n"
+}

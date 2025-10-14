@@ -1,0 +1,16 @@
+{
+  "model_name": "Random Forest",
+  "roc_auc": 0.7852958911189595,
+  "pr_auc": 0.44500556930520424,
+  "confusion_matrix": [
+    [
+      245,
+      2
+    ],
+    [
+      42,
+      5
+    ]
+  ],
+  "classification_report": "              precision    recall  f1-score   support\n\n         0.0      0.854     0.992     0.918       247\n         1.0      0.714     0.106     0.185        47\n\n    accuracy                          0.850       294\n   macro avg      0.784     0.549     0.551       294\nweighted avg      0.831     0.850     0.801       294\n"
+}

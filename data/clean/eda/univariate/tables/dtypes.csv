@@ -34,3 +34,4 @@ YearsAtCompany,int64
 YearsInCurrentRole,int64
 YearsSinceLastPromotion,int64
 YearsWithCurrManager,int64
+_Attrition_bin,float64
