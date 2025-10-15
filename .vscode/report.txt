@@ -13,7 +13,7 @@ Progress Report — Predicting Employee Attrition Date: 2025-09-18 (updated with
 
 3. 	Univariate analysis (done & persisted)
 
-• 	Categorical and numeric distributions, outlier scans (IQR/Z), missingness tables and correlations computed.
+• 	Categorical and numeric distributions, missingness tables and general "get to know" the data.
 • 	Artifacts saved under data/clean/eda/univariate/tables and .../figures:
 • 	summary_statistics.csv, missing_by_column.csv, value_counts_<col>.csv, outlier_scan_numeric.csv, <col>_hist.png, boxplots_top6_outliers.png, missingness_heatmap.png, etc.
 • 	Each artifact includes interpretive guidance and recommended follow-ups.
@@ -66,13 +66,15 @@ Progress Report — Predicting Employee Attrition Date: 2025-09-18 (updated with
 - Salary equity review: analyze internal pay equity and address unjustified disparities.
 - Focus retention efforts by department: tailor retention policies for R&D while maintaining coverage for smaller departments.
 - Remove invariant variables (EmployeeCount, Over18, StandardHours) from reports and models to simplify analyses.
-- Suggested presentation flow
-- Context and dataset overview.
-- Key statistics (age, attrition rate, role distribution).
-- Main risks identified (low satisfaction pockets, slow promotions, overtime).
-- Practical recommendations and next steps for HR.
-- Next request
-- Paste the main outputs you want included (e.g., df.info(), missing_sorted, desc_all, and selected value_counts) and a slide skeleton will be prepared for direct insertion.
+- Recommendations for managers:
+-- Prioritize junior talent development: With 73% of employees in entry-level roles, invest in onboarding, mentorship, and career progression programs to reduce early-stage attrition and build long-term loyalty.
+- Address pockets of dissatisfaction: Around 20% of employees report low job or environment satisfaction. These groups may be at higher risk of disengagement or exit — targeted interventions can improve morale and retention.
+- Monitor overtime exposure: 28% of employees report working overtime. This segment may be more prone to burnout and turnover. Consider reviewing workload distribution and compensation fairness.
+- Accelerate promotion pathways: While the median time since last promotion is 1 year, some employees have waited over a decade. Long delays can erode motivation — implement transparent criteria and regular review cycles.
+- Ensure pay equity: Monthly income ranges from R$1,009 to R$19,999. Such wide dispersion may lead to perceived unfairness. Conduct internal equity audits to ensure compensation aligns with role, performance, and tenure.
+- Tailor retention strategies by department: With 65% of staff concentrated in R&D, retention efforts should be customized to this group’s needs while ensuring smaller departments like HR and Sales aren’t overlooked.
+- Design benefits with demographics in mind: The workforce skews male (60%) and married (46%). Consider how benefits, wellness programs, and internal communications can better reflect employee life stages and priorities.
+- Support internal mobility based on education: Most employees studied Life Sciences or Medicine. Use this insight to guide cross-functional training, career transitions, and technical upskilling initiatives.
 
 
 4. 	Bivariate analysis (done & persisted)
@@ -104,12 +106,12 @@ Business insights
 - Stock options: skewed distribution indicates few employees receive high‑level stock options, potentially affecting retention of strategic talent.
 - Data provenance: absence of missingness is positive but should be validated to ensure no artificial preprocessing masked real gaps.
 Recommendations for managers
-- Training policy: review and standardize training allocation; target employees with unusually low or high training counts for development or reassignment.
-- Performance evaluation: redesign appraisal processes to increase discrimination and better identify high performers and development needs.
-- Pay equity audit: analyze salary ranges within comparable roles and address unjustified disparities.
-- Promotion pathways: implement clear progression plans and more frequent promotion review cycles to reduce long promotion gaps.
-- Retention incentives: broaden access to long‑term incentives (e.g., stock options) for critical roles to improve retention.
-- Data governance: validate data provenance and preprocessing steps to confirm that the dataset accurately reflects operational reality.
+-- Standardize training allocation: The wide variation in training frequency suggests inconsistent development practices. Employees receiving too little or too much training may feel neglected or overwhelmed. Review training policies to ensure equitable access and alignment with role needs.
+- Redesign performance evaluations: The clustering of ratings around a single score indicates that current appraisal methods may lack nuance. Introduce more discriminative criteria to better recognize top performers and identify areas for growth.
+- Address pay disparities: High-income outliers relative to the median may signal perceived unfairness. Conduct salary audits within comparable roles to ensure compensation reflects contribution and experience.
+- Accelerate promotion cycles: Long gaps since last promotion are linked to frustration and attrition. Implement clear progression frameworks and regular review checkpoints to support career advancement.
+- Expand retention incentives: The concentration of high-level stock options among few employees may undermine motivation in strategic roles. Consider broadening access to long-term incentives to retain key talent.
+- Validate data integrity: While no missing values were detected, confirm that preprocessing steps haven’t masked real gaps. Reliable data is essential for informed HR decisions and policy design.
 
 5. 	Multivariate analysis (done & persisted)
 
@@ -207,14 +209,15 @@ Numeric variables
 - Critical areas: Sales and HR show higher attrition than R&D.
 - People management: relationship with manager and time in role are determinants—employees new to roles or under new managers have higher risk.
 - Recommendations for managers
-- Retain young talent: implement mentorship programs and clear career paths for levels 1–2.
-- Work-life balance: monitor overtime and offer flexible policies.
-- Training and development: increase training frequency, especially for employees with none.
-- Long-term benefits: expand access to stock options or other retention incentives.
-- Manager development: train managers to strengthen ties with direct reports, especially in early tenure.
-- Area-specific actions: implement targeted policies for Sales and HR.
-- Satisfaction monitoring: closely track low-satisfaction and low-involvement groups and apply action plans.
-
+-- Retain young and entry-level talent: Younger employees in junior roles show significantly higher attrition. Prioritize mentorship, onboarding, and career pathing to reduce early exits and build long-term engagement.
+- Target high-risk roles and departments: Sales Representatives, Lab Technicians, and HR staff have elevated attrition rates. Tailor retention strategies and workload policies to these groups to reduce turnover.
+- Improve work-life balance: Employees reporting poor balance or frequent overtime are more likely to leave. Introduce flexible scheduling, workload reviews, and wellness initiatives to mitigate burnout.
+- Strengthen manager relationships: Shorter tenure with current managers correlates with higher exit risk. Invest in manager training focused on relationship-building, feedback, and early-stage support.
+- Expand training access: Employees with few or no trainings are more likely to leave. Standardize development plans and ensure consistent access to learning opportunities across roles and departments.
+- Broaden long-term incentives: Limited access to stock options is linked to higher attrition. Consider expanding eligibility for retention-focused benefits to strategic and high-performing employees.
+- Monitor satisfaction and involvement: Low scores in job satisfaction and involvement are strong predictors of exit. Use pulse surveys and engagement programs to identify and support at-risk groups.
+- Address income disparities: Lower monthly income is associated with higher attrition. Conduct internal equity reviews to ensure compensation aligns with role complexity and performance.
+- Focus on tenure-sensitive policies: Employees with shorter time at the company, in their role, or with their manager are more vulnerable. Design onboarding and progression policies that support early tenure retention.
 
 6. 	Advanced signal checks (completed where possible)
 • 	Mutual Information vs target computed and saved (mutual_information_vs_target.csv); fallback note added if sklearn not available.
@@ -253,15 +256,11 @@ Business insights
 - Critical hotspot:
 - Single + OverTime = extreme risk group (≈49.6% attrition); combines low social support, high workload and weaker long-term attachment.
 Recommendations for managers
-- Feature simplification:
-- Use either JobLevel or MonthlyIncome (not both) in reports and models; apply Lasso/Ridge to address collinearity.
-- Benefits policy:
-- Review stock option allocation criteria to remove potential bias by marital status; consider expanding long-term incentives for vulnerable groups (e.g., single employees).
-- Overtime management:
-- Monitor single employees with high overtime; offer wellbeing programs, flexibility and targeted recognition to reduce burnout and exits.
-- Hotspot monitoring:
-- Build HR dashboards combining variables (e.g., OverTime × MaritalStatus) to identify high-impact intervention groups and prioritize targeted actions.
-
+-- Simplify compensation frameworks: Job level and monthly income are statistically redundant. For clarity and fairness, align career progression and pay structures to avoid confusion or perceived inconsistency.
+- Audit benefits allocation: The strong association between marital status and stock option levels suggests potential bias. Review benefit policies to ensure equitable access, especially for single employees who show higher attrition risk.
+- Target high-risk employee profiles: Single employees working overtime face nearly 50% attrition. This group combines low social support with high workload. Prioritize them for wellness programs, flexible scheduling, and retention incentives.
+- Design smarter HR dashboards: Combine variables like marital status and overtime to surface hidden risk clusters. Use these dashboards to guide targeted interventions and resource allocation.
+- Address role and experience overlap: Professional trajectory variables (e.g., tenure, time with manager) are moderately correlated. When designing development programs or predictive models, avoid redundancy and focus on the most actionable signals.
 
 
 7. 	EDA modes, artifacts & reproducibility (done)
