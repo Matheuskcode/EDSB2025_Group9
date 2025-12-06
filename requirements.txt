@@ -1,18 +1,25 @@
-Summary of Stack Requirements to be installed
+Summary of Stack Requirements to be Installed
 
 Packages and Tools Used
+
 - Core data wrangling & math
-- pandas; numpy
+- pandas, numpy
+
 - Modeling & feature selection
-- scikit-learn; joblib
+- scikit-learn — Logistic Regression, Random Forest, Gradient Boosting, KNN, feature selection (L1, SelectFromModel), cross‑validation, calibration (CalibratedClassifierCV), threshold tuning
+- joblib — model persistence and pipeline export
+
 - Visualization
-- matplotlib; seaborn
+- matplotlib, seaborn — plots for distributions, attrition rates, correlations, CV fold metrics
 - Notebook environment
-- jupyter; notebook; ipython
+- jupyter, notebook, ipython — interactive analysis and reproducible notebooks
+
 - Statistical utilities
-- scipy
+- scipy — statistical tests, utilities for correlation and association metrics
+
 - Explainability
-- shap
+- shap — model interpretation, feature importance explanations, attrition driver analysis
+
 - Optional / interactive / extras
-- plotly   # optional: enable interactive plots
-- statsmodels  # optional: used by some regression utilities; not required for core cells
+- plotly — optional: enable interactive plots for dashboards or exploratory visualization
+- statsmodels — optional: regression utilities, not required for core modeling cells
