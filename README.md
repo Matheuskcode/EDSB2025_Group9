@@ -43,7 +43,7 @@ Notebook and Project Structure
 - Multivariate tables: Pearson/Spearman, VIF, Cramér’s V, mutual information rankings, MI feature pairs.
 - Figures: histograms, countplots, attrition bar charts, violin/boxplots by target, heatmaps, pairplots, hotspot grids.
 
-- Notebook Bootcamp_data_Analysis - Simplified highlights:
+- Notebook Bootcamp_data_Analysis - Final Exploration highlights:
 Selected plots and insights from Initial Exploration Notebook
 
 - Repository layout:
