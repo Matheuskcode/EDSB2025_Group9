@@ -55,8 +55,8 @@ Selected plots and insights from Initial Exploration Notebook
 - bivariate/{figures,tables}
 - multivariate/{figures,tables}
 - notebooks/
-- Bootcamp_Data_Analysis - Initial Analysis.ipynb
-- Bootcamp_Git_Admin - Simplified.ipynb
+- Bootcamp_Data_Analysis - Initial Exploration.ipynb
+- Bootcamp_Git_Admin - Final Exploration.ipynb
 - src/
 - data_prep.py
 - eda_utils.py
