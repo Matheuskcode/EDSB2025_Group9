@@ -305,6 +305,27 @@ Recommended rollout approach
 - During pilot, track: alerts per day, observed precision (confirmation rate), recall where ground truth is available, and average cost per investigation.
 - Choose the active model with HR based on empirical alert volume, confirmation rate, and acceptable investigation cost.
 
+To complement the threshold‑tuned metrics, we also ran 5‑fold Stratified Cross‑Validation for each model. Accuracy and F1‑Score were computed per fold, and the best fold was highlighted for visualization.
+Random Forest — Predicting Retention (Attrition)
+- Cross‑validation: 5 folds, StratifiedKFold.
+- Accuracy across folds: ~0.85–0.86.
+- F1‑Score across folds: up to ~0.34.
+- Best fold showed Accuracy ≈ 0.86 and F1 ≈ 0.34.
+- Visualization: single‑bar plot comparing best Accuracy vs best F1.
+Logistic Regression — Predicting Retention (Attrition)
+- Cross‑validation: 5 folds, StratifiedKFold.
+- Accuracy across folds: ~0.82–0.87.
+- F1‑Score across folds: ranged from ~0.17 to ~0.38.
+- Best fold showed Accuracy ≈ 0.87 and F1 ≈ 0.38.
+- Visualization: single‑bar plot comparing best Accuracy vs best F1.
+Gradient Boosting — Predicting Retention (Attrition)
+- Cross‑validation: 5 folds, StratifiedKFold.
+- Accuracy across folds: ~0.84–0.88.
+- F1‑Score across folds: ranged from ~0.34 to ~0.46.
+- Best fold showed Accuracy ≈ 0.88 and F1 ≈ 0.466.
+- Visualization: single‑bar plot comparing best Accuracy vs best F1.
+
+
 
 9. 	Reporting & persistence (done)
 
