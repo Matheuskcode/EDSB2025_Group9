@@ -1,0 +1,11 @@
+Classification Report - Gradient Boosting Model
+============================================================
+
+              precision    recall  f1-score   support
+
+No Attrition       0.89      0.96      0.92       247
+   Attrition       0.61      0.36      0.45        47
+
+    accuracy                           0.86       294
+   macro avg       0.75      0.66      0.69       294
+weighted avg       0.84      0.86      0.85       294
